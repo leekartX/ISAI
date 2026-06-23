@@ -1,0 +1,4 @@
+build/
+*.root
+.DS_Store
+!build/*.mac

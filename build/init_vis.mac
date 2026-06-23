@@ -1,0 +1,16 @@
+/run/initialize
+# 1. 시각화 드라이버 초기화 (OpenGL Qt 등)
+
+/vis/open OGL 600x600-0+0
+
+# 2. 월드 및 볼륨 그리기
+/vis/drawVolume
+
+# 3. 입자 궤적(Trajectory) 표시 설정
+/vis/scene/add/trajectories smooth
+/vis/scene/endOfEventAction accumulate
+
+# 4. 보기 편한 각도로 카메라 시점 조정 (Theta, Phi)
+/vis/viewer/set/viewpointThetaPhi 70 20
+/vis/viewer/zoom 1.5
+

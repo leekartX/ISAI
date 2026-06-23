@@ -1,0 +1,36 @@
+# =======================================================================
+# 🎯 K-40 베타 붕괴 대량 데이터 획득 정석 run.mac (최종본)
+# =======================================================================
+
+# 1. 선원 종류: 전자 (e-)
+/gps/particle e-
+
+# 2. 선원 위치: PCB 기판 전체 영역에 균일하게 분포 (볼륨 소스)
+/gps/pos/type Volume
+/gps/pos/shape Para
+/gps/pos/centre 0 0 0 mm
+/gps/pos/halfx 55.05 mm
+/gps/pos/halfy 37.55 mm
+/gps/pos/halfz 1.0 mm
+/gps/pos/confine Phys_PCB   # DetectorConstruction의 PCB 물리 볼륨 이름
+
+# 3. 각도 설정: 모든 방향으로 무작위 발사 (방 등방성)
+/gps/ang/type iso
+
+# 4. 에너지 설정: K-40의 최대 에너지 1.31 MeV(1310 keV)를 기준으로 선형 분포 모사
+/gps/ene/type Lin
+/gps/ene/min 0.0 MeV
+/gps/ene/max 1.31 MeV
+/gps/ene/gradient -1.0
+/gps/ene/intercept 1.0
+
+# =======================================================================
+# 🚀 멀티스레드 안전 초기화 및 발사 실행 (가장 중요)
+# =======================================================================
+
+# [핵심] Ntuple 주소 꼬임으로 인한 세그폴트를 막기 위해 커널을 먼저 완전히 올립니다.
+/run/initialize
+
+# [핵심] 100만 발 대량 데이터 획득 시작! (1000발마다 로그 출력)
+/run/printProgress 1000
+/run/beamOn 10
