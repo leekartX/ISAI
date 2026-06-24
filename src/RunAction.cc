@@ -2,9 +2,13 @@
 #include "G4Run.hh"
 #include "G4AnalysisManager.hh"
 
+// 🌟 [K-40 해방용 핵심 헤더 추가]
+#include "G4NuclideTable.hh"
+#include "G4DeexPrecoParameters.hh"
+#include "G4NuclearLevelData.hh"
+
 RunAction::RunAction() {
     // 💡 생성자(Constructor) 타이밍에 데이터의 '틀(Ntuple 구조)'을 딱 한 번만 짜둡니다.
-    // 마스터 스레드와 워커 스레드가 각각 생성될 때 알아서 안전하게 이 구조를 생성합니다.
     auto* analysisManager = G4AnalysisManager::Instance();
     analysisManager->SetVerboseLevel(1);
     
@@ -18,14 +22,23 @@ RunAction::RunAction() {
 }
 
 void RunAction::BeginOfRunAction(const G4Run*) {
+    // 🔥 [최종 결전 치트키 삽입]
+    // 시뮬레이션 버튼(beamOn)이 눌리고, 첫 K-40 입자가 튀어나오기 직전인 바로 '지금'
+    // Geant4 전역 커널의 시간 장벽을 100경 년으로 고정해 버립니다.
+    G4NuclideTable::GetInstance()->SetThresholdOfHalfLife(1.0e+18 * CLHEP::year);
+    
+    G4DeexPrecoParameters* deexParams = G4NuclearLevelData::GetInstance()->GetParameters();
+    if (deexParams) {
+        deexParams->SetMaxLifeTime(1.0e+18 * CLHEP::year);
+    }
+
+    // -------------------------------------------------------------
+    // 원래 있던 정갈한 기존 코드 로직 유지
     auto* analysisManager = G4AnalysisManager::Instance();
     
-    // 💡 [핵심] 시뮬레이션이 진짜 시작되어 파일이 열리기 직전에 병합 옵션을 활성화합니다.
-    // 이렇게 분리하면 "Ntuple이 이미 존재한다"거나 "없다"는 에러가 원천 차단됩니다.
     analysisManager->SetNtupleMerging(true); 
-    analysisManager->SetNtupleRowWise(false); // 단 하나의 정갈한 트리로 합쳐주는 치트키
+    analysisManager->SetNtupleRowWise(false); 
     
-    // 안전하게 출력 파일을 생성합니다.
     analysisManager->OpenFile("simulation_output.root");
 }
 
