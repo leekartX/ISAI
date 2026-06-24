@@ -2,16 +2,18 @@
 #include "G4Run.hh"
 #include "G4AnalysisManager.hh"
 
-// 🌟 [K-40 해방용 핵심 헤더 추가]
+// 🌟 [K-40 해방용 핵심 헤더]
 #include "G4NuclideTable.hh"
 #include "G4DeexPrecoParameters.hh"
 #include "G4NuclearLevelData.hh"
 
 RunAction::RunAction() {
-    // 💡 생성자(Constructor) 타이밍에 데이터의 '틀(Ntuple 구조)'을 딱 한 번만 짜둡니다.
     auto* analysisManager = G4AnalysisManager::Instance();
     analysisManager->SetVerboseLevel(1);
     
+    // 🚀 머징 옵션 활성화
+    analysisManager->SetNtupleMerging(true); 
+
     analysisManager->CreateNtuple("BackgroundData", "PCB Intrinsic Background Hits");
     analysisManager->CreateNtupleDColumn("Edep");     // Column 0
     analysisManager->CreateNtupleIColumn("EventID");  // Column 1
@@ -21,29 +23,26 @@ RunAction::RunAction() {
     analysisManager->FinishNtuple();
 }
 
-void RunAction::BeginOfRunAction(const G4Run*) {
-    // 🔥 [최종 결전 치트키 삽입]
-    // 시뮬레이션 버튼(beamOn)이 눌리고, 첫 K-40 입자가 튀어나오기 직전인 바로 '지금'
-    // Geant4 전역 커널의 시간 장벽을 100경 년으로 고정해 버립니다.
+void RunAction::BeginOfRunAction(const G4Run* run) {
+    // 🔥 [K-40 치트키]
     G4NuclideTable::GetInstance()->SetThresholdOfHalfLife(1.0e+18 * CLHEP::year);
-    
     G4DeexPrecoParameters* deexParams = G4NuclearLevelData::GetInstance()->GetParameters();
     if (deexParams) {
         deexParams->SetMaxLifeTime(1.0e+18 * CLHEP::year);
     }
 
     // -------------------------------------------------------------
-    // 원래 있던 정갈한 기존 코드 로직 유지
     auto* analysisManager = G4AnalysisManager::Instance();
     
-    analysisManager->SetNtupleMerging(true); 
-    analysisManager->SetNtupleRowWise(false); 
-    
+    // 🚀 [수정] IsMaster() 조건문을 지우고 모든 스레드가 이 로직을 통과하게 합니다.
+    // Geant4 분석 매니저가 내부적으로 마스터/워커를 알아서 분기 처리합니다.
     analysisManager->OpenFile("simulation_output.root");
 }
 
-void RunAction::EndOfRunAction(const G4Run*) {
+void RunAction::EndOfRunAction(const G4Run* run) {
     auto* analysisManager = G4AnalysisManager::Instance();
+    
+    // 🚀 [수정] 마찬가지로 IsMaster()를 지우고 순정 상태로 둡니다.
     analysisManager->Write();
     analysisManager->CloseFile();
 }

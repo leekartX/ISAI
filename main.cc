@@ -6,6 +6,7 @@
 #include "G4UIExecutive.hh"
 #include "G4VisExecutive.hh"
 #include "QGSP_BERT_HP.hh"
+#include "PhysicsList.hh"
 
 #include "DetectorConstruction.hh"
 #include "ActionInitialization.hh"
@@ -22,10 +23,9 @@ int main(int argc, char** argv)
     // 💡 [순서 1] 진짜 Detector 기하학 등록 (오타 수정 완료!)
     runManager->SetUserInitialization(new DetectorConstruction());
 
-    // 💡 [순서 2] Physics List 등록 (핵붕괴 + 저에너지 표준 물리 조합)
-    G4VModularPhysicsList* physicsList = new QGSP_BERT_HP;
-    physicsList->RegisterPhysics(new G4RadioactiveDecayPhysics());      // K-40 방사성 붕괴 물리
-    physicsList->RegisterPhysics(new G4EmStandardPhysics_option4());   // 전자의 실리콘 센서 정밀 충돌 물리
+   // 2. 기존 QGSP_BERT 적혀있던 물리 리스트 할당 부분을 아래와 같이 변경
+// G4VModularPhysicsList* physicsList = new QGSP_BERT; // <-- 기존꺼 주석 처리 또는 삭제
+    PhysicsList* physicsList = new PhysicsList();         // 🌟 우리가 만든 커스텀 장착!
     runManager->SetUserInitialization(physicsList);
 
     // 💡 [순서 3] Action Initialization 등록 (HistoManager가 안전하게 켜지는 타이밍)
